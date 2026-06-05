@@ -31,8 +31,8 @@ This isn't synthetic data. These are real encounters, real patients, real outcom
 
 | File | Contents |
 |---|---|
-| `01_exploratory_analysis.sql` | Queries 1–6: operational and efficiency-focused analysis commissioned by hospital leadership |
-| `02_readmission_equity.sql` | Query 7: the unsolicited readmission equity analysis — the question nobody asked |
+| `01_exploratory_analysis.sql` | Queries 1–6: operational and efficiency-focused analysis |
+| `02_readmission_equity.sql` | Query 7: the question nobody asked |
 
 ---
 
@@ -52,16 +52,6 @@ WHERE race IS NOT NULL AND race != '?'
 GROUP BY race
 ORDER BY avg_lab_procedures DESC;
 ```
-
-**Sample output:**
-
-| race | avg_lab_procedures | encounter_count |
-|---|---|---|
-| AfricanAmerican | 43.48 | 19,210 |
-| Caucasian | 43.11 | 76,099 |
-| Hispanic | 42.73 | 2,037 |
-| Asian | 41.76 | 641 |
-| Other | 40.88 | 1,506 |
 
 **Takeaway:** Disparities in procedure counts can reflect many things — disease severity, access patterns, documentation differences — and SQL alone cannot tell you which. But it can tell you whether the numbers look uneven, and hand that finding to someone equipped to dig deeper.
 
@@ -180,40 +170,48 @@ GROUP BY stay_category;
 
 ### 7. The Question Nobody Asked — Readmission Rates by Race
 
-Nobody asked about 30-day readmissions — one of the most expensive, most telling, and most preventable events in the healthcare system.
+My boss's questions were all oriented around efficiency: how fast are patients moving through the system? How many procedures are they getting? How long are they staying? All valid, all useful.
+
+But there was a blind spot. Nobody asked about readmissions within 30 days — and in healthcare, a 30-day readmission is one of the most expensive, most telling, and most preventable events in the system.
+
+I built a query to calculate the sub-30-day readmission rate, and then — because the earlier race-based procedure analysis was already in my head — I broke it down by race.
 
 ```sql
+-- Overall sub-30-day readmission rate
 SELECT
-    race,
-    COUNT(*) AS total_encounters,
-    SUM(CASE WHEN readmitted = '<30' THEN 1 ELSE 0 END) AS readmissions_within_30_days,
     ROUND(
         SUM(CASE WHEN readmitted = '<30' THEN 1 ELSE 0 END) * 100.0 / COUNT(*),
         2
-    ) AS readmission_rate_pct,
+    ) AS readmission_rate_pct
+FROM diabetic_data;
+
+-- Readmission rate broken down by race
+SELECT
+    race,
+    COUNT(*) AS total_encounters,
+    SUM(CASE WHEN readmitted = '<30' THEN 1 ELSE 0 END) AS readmissions,
     ROUND(
-        SUM(CASE WHEN readmitted = '<30' THEN 1 ELSE 0 END) * 100.0 / COUNT(*)
-        - (SELECT SUM(CASE WHEN readmitted = '<30' THEN 1 ELSE 0 END) * 100.0 / COUNT(*)
-           FROM diabetic_data),
+        SUM(CASE WHEN readmitted = '<30' THEN 1 ELSE 0 END) * 100.0 / COUNT(*),
         2
-    ) AS diff_from_overall_avg
+    ) AS readmission_rate_pct
 FROM diabetic_data
-WHERE race IS NOT NULL AND race != '?'
 GROUP BY race
 ORDER BY readmission_rate_pct DESC;
 ```
 
 **Sample output** (overall rate: ~11.2%):
 
-| race | total_encounters | readmissions | readmission_rate_pct | diff_from_avg |
-|---|---|---|---|---|
-| AfricanAmerican | 19,210 | 2,263 | 11.78% | +0.54% |
-| Caucasian | 76,099 | 8,461 | 11.12% | -0.12% |
-| Hispanic | 2,037 | 209 | 10.26% | -0.98% |
-| Other | 1,506 | 157 | 10.43% | -0.81% |
-| Asian | 641 | 58 | 9.05% | -2.19% |
+| race | total_encounters | readmissions | readmission_rate_pct |
+|---|---|---|---|
+| AfricanAmerican | 19,210 | 2,263 | 11.78% |
+| Caucasian | 76,099 | 8,461 | 11.12% |
+| Hispanic | 2,037 | 209 | 10.26% |
+| Other | 1,506 | 157 | 10.43% |
+| Asian | 641 | 58 | 9.05% |
 
-**Takeaway:** The results showed uneven readmission rates across demographic groups. That's not a conclusion about causation — but it is a flag worth raising. My boss didn't ask for it. But I think they needed it.
+**Takeaway:** The results showed uneven readmission rates across demographic groups. That's not a conclusion about causation — but it is a flag. It's the kind of finding that should prompt a serious conversation about whether all patient populations are receiving equally effective discharge planning, follow-up care, and post-visit support.
+
+My boss didn't ask for it. But I think they needed it.
 
 ---
 
@@ -229,12 +227,7 @@ ORDER BY readmission_rate_pct DESC;
 
 ## What's Next
 
-This analysis is a starting point, not a finish line. The immediate next step would be a deeper readmission study — specifically exploring whether demographic disparities correlate with discharge protocols, follow-up appointment rates, or geographic access to post-acute care.
-
-Questions worth adding to your own analysis:
-- What is the 90-day readmission rate, and does it tell a different story than 30 days?
-- Are there specific attending physicians or departments driving the fastest — or slowest — outcomes?
-- Does insurance type or payer class affect length of stay or readmission risk?
+This analysis is a starting point, not a finish line. If I were presenting this to hospital leadership, the immediate next step would be a deeper readmission study — specifically exploring whether the demographic disparities in readmission rates correlate with discharge protocols, follow-up appointment rates, or geographic access to post-acute care.
 
 ---
 
