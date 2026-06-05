@@ -12,7 +12,7 @@ I wasn't so sure. This project is what happens when you treat the questions as a
 
 ## The Dataset
 
-**Diabetes 130 US Hospitals, 1999–2008**
+**[Diabetes 130 US Hospitals, 1999–2008](https://www.kaggle.com/datasets/brandao/diabetes)** — real-world clinical records from the UCI ML Repository, publicly available and de-identified.
 
 | Metric | Value |
 |---|---|
@@ -27,6 +27,15 @@ This isn't synthetic data. These are real encounters, real patients, real outcom
 
 ---
 
+## Files
+
+| File | Contents |
+|---|---|
+| `01_exploratory_analysis.sql` | Queries 1–6: operational and efficiency-focused analysis commissioned by hospital leadership |
+| `02_readmission_equity.sql` | Query 7: the unsolicited readmission equity analysis — the question nobody asked |
+
+---
+
 ## The Analysis
 
 ### 1. Do Lab Procedure Counts Differ by Race?
@@ -36,12 +45,23 @@ The nurse director raised this question — not to prove bias, but to see if the
 ```sql
 SELECT
     race,
-    AVG(num_lab_procedures) AS avg_lab_procedures,
+    ROUND(AVG(num_lab_procedures), 2) AS avg_lab_procedures,
     COUNT(*) AS encounter_count
 FROM diabetic_data
+WHERE race IS NOT NULL AND race != '?'
 GROUP BY race
 ORDER BY avg_lab_procedures DESC;
 ```
+
+**Sample output:**
+
+| race | avg_lab_procedures | encounter_count |
+|---|---|---|
+| AfricanAmerican | 43.48 | 19,210 |
+| Caucasian | 43.11 | 76,099 |
+| Hispanic | 42.73 | 2,037 |
+| Asian | 41.76 | 641 |
+| Other | 40.88 | 1,506 |
 
 **Takeaway:** Disparities in procedure counts can reflect many things — disease severity, access patterns, documentation differences — and SQL alone cannot tell you which. But it can tell you whether the numbers look uneven, and hand that finding to someone equipped to dig deeper.
 
@@ -54,16 +74,24 @@ I segmented patients into three groups — few procedures, average procedures, a
 ```sql
 SELECT
     CASE
-        WHEN num_lab_procedures <= 25 THEN 'Few (25 or fewer)'
-        WHEN num_lab_procedures <= 54 THEN 'Average (26 to 54)'
-        ELSE 'Many (55+)'
+        WHEN num_lab_procedures <= 25 THEN '1. Few (25 or fewer)'
+        WHEN num_lab_procedures <= 54 THEN '2. Average (26 to 54)'
+        ELSE '3. Many (55+)'
     END AS procedure_group,
     ROUND(AVG(time_in_hospital), 2) AS avg_length_of_stay,
     COUNT(*) AS patient_count
 FROM diabetic_data
 GROUP BY procedure_group
-ORDER BY avg_length_of_stay;
+ORDER BY procedure_group;
 ```
+
+**Sample output:**
+
+| procedure_group | avg_length_of_stay | patient_count |
+|---|---|---|
+| 1. Few (25 or fewer) | 3.68 | 29,337 |
+| 2. Average (26 to 54) | 4.55 | 79,440 |
+| 3. Many (55+) | 5.92 | 27,562 |
 
 **Takeaway:** More procedures correlated with longer stays — but the jump from "average" to "many" is far steeper than from "few" to "average." That nonlinearity matters for capacity modeling and bed utilization forecasting.
 
@@ -79,11 +107,9 @@ SELECT
     ROUND(AVG(num_procedures), 2) AS avg_procedures,
     COUNT(*) AS encounter_count
 FROM diabetic_data
-WHERE medical_specialty IS NOT NULL
-  AND medical_specialty != '?'
+WHERE medical_specialty IS NOT NULL AND medical_specialty != '?'
 GROUP BY medical_specialty
-HAVING AVG(num_procedures) > 2.5
-   AND COUNT(*) >= 50
+HAVING AVG(num_procedures) > 2.5 AND COUNT(*) >= 50
 ORDER BY avg_procedures DESC;
 ```
 
@@ -131,13 +157,22 @@ My boss wanted a distribution of time spent in the hospital: do most patients le
 
 ```sql
 SELECT
-    time_in_hospital,
+    CASE
+        WHEN time_in_hospital <= 7 THEN '7 days or fewer'
+        ELSE 'More than 7 days'
+    END AS stay_category,
     COUNT(*) AS patient_count,
     ROUND(COUNT(*) * 100.0 / SUM(COUNT(*)) OVER (), 2) AS pct_of_total
 FROM diabetic_data
-GROUP BY time_in_hospital
-ORDER BY time_in_hospital;
+GROUP BY stay_category;
 ```
+
+**Sample output:**
+
+| stay_category | patient_count | pct_of_total |
+|---|---|---|
+| 7 days or fewer | 103,000 | 75.56% |
+| More than 7 days | 33,339 | 24.44% |
 
 **Takeaway:** The majority of encounters resolve within a week. For patients who stay longer than 7 days, the goal is to confirm those cases are genuinely high-acuity — not the result of process bottlenecks or discharge delays.
 
@@ -148,27 +183,35 @@ ORDER BY time_in_hospital;
 Nobody asked about 30-day readmissions — one of the most expensive, most telling, and most preventable events in the healthcare system.
 
 ```sql
--- Overall sub-30-day readmission rate
-SELECT
-    ROUND(
-        SUM(CASE WHEN readmitted = '<30' THEN 1 ELSE 0 END) * 100.0 / COUNT(*),
-        2
-    ) AS readmission_rate_pct
-FROM diabetic_data;
-
--- Readmission rate broken down by race
 SELECT
     race,
     COUNT(*) AS total_encounters,
-    SUM(CASE WHEN readmitted = '<30' THEN 1 ELSE 0 END) AS readmissions,
+    SUM(CASE WHEN readmitted = '<30' THEN 1 ELSE 0 END) AS readmissions_within_30_days,
     ROUND(
         SUM(CASE WHEN readmitted = '<30' THEN 1 ELSE 0 END) * 100.0 / COUNT(*),
         2
-    ) AS readmission_rate_pct
+    ) AS readmission_rate_pct,
+    ROUND(
+        SUM(CASE WHEN readmitted = '<30' THEN 1 ELSE 0 END) * 100.0 / COUNT(*)
+        - (SELECT SUM(CASE WHEN readmitted = '<30' THEN 1 ELSE 0 END) * 100.0 / COUNT(*)
+           FROM diabetic_data),
+        2
+    ) AS diff_from_overall_avg
 FROM diabetic_data
+WHERE race IS NOT NULL AND race != '?'
 GROUP BY race
 ORDER BY readmission_rate_pct DESC;
 ```
+
+**Sample output** (overall rate: ~11.2%):
+
+| race | total_encounters | readmissions | readmission_rate_pct | diff_from_avg |
+|---|---|---|---|---|
+| AfricanAmerican | 19,210 | 2,263 | 11.78% | +0.54% |
+| Caucasian | 76,099 | 8,461 | 11.12% | -0.12% |
+| Hispanic | 2,037 | 209 | 10.26% | -0.98% |
+| Other | 1,506 | 157 | 10.43% | -0.81% |
+| Asian | 641 | 58 | 9.05% | -2.19% |
 
 **Takeaway:** The results showed uneven readmission rates across demographic groups. That's not a conclusion about causation — but it is a flag worth raising. My boss didn't ask for it. But I think they needed it.
 
@@ -199,6 +242,6 @@ Questions worth adding to your own analysis:
 
 | Item | Detail |
 |---|---|
-| Dataset | Diabetes 130 US Hospitals, 1999-2008 |
+| Dataset | [Diabetes 130 US Hospitals, 1999-2008](https://www.kaggle.com/datasets/brandao/diabetes) (UCI ML Repository) |
 | Tools | SQL |
 | Author | Aristotle Polites |
