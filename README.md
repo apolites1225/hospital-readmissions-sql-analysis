@@ -60,12 +60,6 @@ Average lab procedures per encounter ranged across racial groups. Disparities in
 
 **Procedure Volume vs. Length of Stay**
 
-| Procedure Group | Avg Length of Stay | Patient Count |
-|---|---|---|
-| Few (25 or fewer) | 3.68 days | 29,337 |
-| Average (26–54) | 4.55 days | 79,440 |
-| Many (55+) | 5.92 days | 27,562 |
-
 The jump from "average" to "many" is steeper than from "few" to "average" — a nonlinearity that matters for capacity modeling and bed utilization forecasting.
 
 **High-Procedure Specialties**
