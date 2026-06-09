@@ -102,13 +102,11 @@ Uneven readmission rates across demographic groups do not establish causation �
 
 ## Key Business Recommendations
 
-| Priority | Recommendation |
-|---|---|
-| 📋 Investigate readmission equity gap | The 2.7pp spread in sub-30-day readmission rates warrants a deeper study into discharge protocols and follow-up care access by demographic group |
-| 🛏️ Audit 7-day-plus stays | 24.4% of encounters exceed 7 days — distinguish high-acuity necessity from process bottlenecks to identify capacity and cost improvement opportunities |
-| 📊 Act on procedure-concentration risk | High-procedure specialties represent concentrated cost and staffing demands; flag for resource planning and efficiency review |
-| 🔬 Expand readmission analysis | Next step: correlate readmission rates with discharge protocols, follow-up scheduling rates, and geographic access to post-acute care |
-
+- **Investigate readmission equity gap:** The 2.7pp spread in sub-30-day readmission rates warrants a deeper study into discharge protocols and follow-up care access by demographic group
+- **Audit 7-day-plus stays:** 24.4% of encounters exceed 7 days — distinguish high-acuity necessity from process bottlenecks to identify capacity and cost improvement opportunities
+- **Act on procedure-concentration risk:** High-procedure specialties represent concentrated cost and staffing demands; flag for resource planning and efficiency review
+- **Expand readmission analysis:** Correlate readmission rates with discharge protocols, follow-up scheduling rates, and geographic access to post-acute care
+- 
 ---
 
 ## Data Cleaning, Assumptions & Limitations
