@@ -86,6 +86,9 @@ Three-quarters of encounters resolve within a week. Patients staying longer than
 
 **Sub-30-Day Readmission Rates by Race** *(Proactive finding)*
 
+![Sub-30-Day Readmission Rates by Race](Query_7_Readmit.png)
+
+![Readmission Rates Results](Query_7_Results.png)
 
 Uneven readmission rates across demographic groups do not establish causation — but they flag a gap that should prompt review of discharge planning effectiveness, follow-up appointment rates, and post-acute care access by population.
 
