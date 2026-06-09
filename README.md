@@ -1,5 +1,7 @@
 # 10 Years. 130 Hospitals - Readmission Analysis
 
+![Hospital Efficiency Uncovered](Project_Cover.png)
+
 ## Executive Summary
 
 This project analyzes 136,339 patient encounters across 130 U.S. hospitals (1999–2008) using SQL, with a focus on operational efficiency, clinical resource utilization, and 30-day readmission patterns.
