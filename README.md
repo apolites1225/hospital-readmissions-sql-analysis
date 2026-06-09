@@ -55,6 +55,7 @@ The original six questions from hospital leadership, plus one added proactively:
 ## Key Findings
 
 **Lab Procedures by Race**
+
 Average lab procedures per encounter ranged across racial groups. Disparities in procedure counts can reflect disease severity, access patterns, or documentation differences — SQL surfaces the gap; investigation determines the cause.
 
 **Procedure Volume vs. Length of Stay**
@@ -68,33 +69,25 @@ Average lab procedures per encounter ranged across racial groups. Disparities in
 The jump from "average" to "many" is steeper than from "few" to "average" — a nonlinearity that matters for capacity modeling and bed utilization forecasting.
 
 **High-Procedure Specialties**
+
 Filtering for specialties with avg procedures > 2.5 and at least 50 encounters surfaces the most resource-intensive clinical areas — relevant for staffing, supply chain, and cost-per-encounter analysis.
 
 **Fast-Track Emergency Discharges**
+
 Patients admitted through the emergency department and discharged faster than the average ER stay represent a benchmark cohort — understanding what they have in common can inform discharge protocol improvements.
 
 **Targeted Patient Cohorts**
+
 African American patients and those with increased metformin dosage represent specific sub-populations relevant to clinical targeting, research enrollment, and care gap analysis.
 
 **7-Day Discharge Distribution**
 
-| Stay Category | Patient Count | % of Total |
-|---|---|---|
-| 7 days or fewer | ~103,000 | 75.56% |
-| More than 7 days | ~33,339 | 24.44% |
+
 
 Three-quarters of encounters resolve within a week. Patients staying longer than 7 days should be reviewed to confirm high-acuity necessity vs. discharge process delays.
 
 **Sub-30-Day Readmission Rates by Race** *(Proactive finding)*
 
-| Race | Total Encounters | Readmissions | Readmission Rate |
-|---|---|---|---|
-| AfricanAmerican | 19,210 | 2,263 | 11.78% |
-| Caucasian | 76,099 | 8,461 | 11.12% |
-| Hispanic | 2,037 | 209 | 10.26% |
-| Other | 1,506 | 157 | 10.43% |
-| Asian | 641 | 58 | 9.05% |
-| Overall | — | — | ~11.2% |
 
 Uneven readmission rates across demographic groups do not establish causation — but they flag a gap that should prompt review of discharge planning effectiveness, follow-up appointment rates, and post-acute care access by population.
 
