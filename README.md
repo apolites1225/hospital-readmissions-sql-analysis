@@ -60,6 +60,8 @@ Average lab procedures per encounter ranged across racial groups. Disparities in
 
 **Procedure Volume vs. Length of Stay**
 
+![Procedure Volume Results](Query_3_Results.png)
+
 The jump from "average" to "many" is steeper than from "few" to "average" — a nonlinearity that matters for capacity modeling and bed utilization forecasting.
 
 **High-Procedure Specialties**
