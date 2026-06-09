@@ -47,7 +47,7 @@ The original six questions from hospital leadership, plus one added proactively:
 
 ## Tools & Skills Used
 
-- **SQL (PostgreSQL):** Aggregations, CASE logic, subqueries, window functions, HAVING filters
+- **SQL (MySQL):** Aggregations, CASE logic, subqueries, window functions, HAVING filters
 - **Analytical approach:** Business question framing, proactive insight generation beyond the stated brief, equity-aware analysis
 
 ---
