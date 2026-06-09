@@ -52,10 +52,10 @@ The original six questions from hospital leadership, plus one added proactively:
 
 ## Key Findings
 
-**1. Lab Procedures by Race**
+**Lab Procedures by Race**
 Average lab procedures per encounter ranged across racial groups. Disparities in procedure counts can reflect disease severity, access patterns, or documentation differences — SQL surfaces the gap; investigation determines the cause.
 
-**2. Procedure Volume vs. Length of Stay**
+**Procedure Volume vs. Length of Stay**
 
 | Procedure Group | Avg Length of Stay | Patient Count |
 |---|---|---|
@@ -65,16 +65,16 @@ Average lab procedures per encounter ranged across racial groups. Disparities in
 
 The jump from "average" to "many" is steeper than from "few" to "average" — a nonlinearity that matters for capacity modeling and bed utilization forecasting.
 
-**3. High-Procedure Specialties**
+**High-Procedure Specialties**
 Filtering for specialties with avg procedures > 2.5 and at least 50 encounters surfaces the most resource-intensive clinical areas — relevant for staffing, supply chain, and cost-per-encounter analysis.
 
-**4. Fast-Track Emergency Discharges**
+**Fast-Track Emergency Discharges**
 Patients admitted through the emergency department and discharged faster than the average ER stay represent a benchmark cohort — understanding what they have in common can inform discharge protocol improvements.
 
-**5. Targeted Patient Cohorts**
+**Targeted Patient Cohorts**
 African American patients and those with increased metformin dosage represent specific sub-populations relevant to clinical targeting, research enrollment, and care gap analysis.
 
-**6. 7-Day Discharge Distribution**
+**7-Day Discharge Distribution**
 
 | Stay Category | Patient Count | % of Total |
 |---|---|---|
@@ -83,7 +83,7 @@ African American patients and those with increased metformin dosage represent sp
 
 Three-quarters of encounters resolve within a week. Patients staying longer than 7 days should be reviewed to confirm high-acuity necessity vs. discharge process delays.
 
-**7. Sub-30-Day Readmission Rates by Race** *(Proactive finding)*
+**Sub-30-Day Readmission Rates by Race** *(Proactive finding)*
 
 | Race | Total Encounters | Readmissions | Readmission Rate |
 |---|---|---|---|
