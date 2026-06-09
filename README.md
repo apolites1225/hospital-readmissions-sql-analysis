@@ -1,240 +1,129 @@
-# Why I Built This
+# Diabetes 130-Hospital Readmissions — SQL Analysis
 
-> *It started with a scenario I think every analyst knows well.*
+## Executive Summary
 
-Your boss pulls you aside, clearly running on two hours of sleep and three too many meetings. They hand you a list of questions and say, "Can you get me answers on these?" — and before you can ask a single follow-up, they're gone.
+This project analyzes 136,339 patient encounters across 130 U.S. hospitals (1999–2008) using SQL, with a focus on operational efficiency, clinical resource utilization, and 30-day readmission patterns.
 
-The easiest thing to do is open your SQL editor and start answering the questions exactly as written. That's the job, right?
+The analysis began with six operational questions from hospital leadership — and identified a seventh that nobody asked for but that has material implications for care quality and equity.
 
-I wasn't so sure. This project is what happens when you treat the questions as a starting point, not a finish line.
+Three material findings emerged:
+
+- Procedure volume strongly correlates with length of stay, but the relationship is nonlinear — patients with 55+ procedures stay 61% longer than those with 25 or fewer, suggesting compounding complexity beyond a threshold.
+- 75.6% of patient encounters resolve within 7 days, but the 24.4% that exceed 7 days warrant investigation to distinguish high-acuity cases from process bottlenecks.
+- Sub-30-day readmission rates vary meaningfully by race (9.1% to 11.8%), a finding not requested but surfaced proactively — highlighting a potential equity gap in discharge planning or follow-up care access.
 
 ---
 
-## The Dataset
+## Business Questions
 
-**[Diabetes 130 US Hospitals, 1999–2008](https://www.kaggle.com/datasets/brandao/diabetes)** — real-world clinical records from the UCI ML Repository, publicly available and de-identified.
+The original six questions from hospital leadership, plus one added proactively:
 
-| Metric | Value |
+1. Do lab procedure counts differ by race — and does the distribution warrant further investigation?
+2. Does higher procedure volume correlate with longer hospital stays?
+3. Which medical specialties are most procedure-intensive (avg > 2.5 procedures, 50+ encounters)?
+4. Which emergency patients were discharged faster than the average ER stay?
+5. Among African American patients and those with increased metformin dosage, how many encounters are in the dataset?
+6. What share of patients are discharged within 7 days vs. longer stays?
+7. *(Proactive)* Do 30-day readmission rates differ across racial groups?
+
+---
+
+## Data Sources
+
+| Dataset | Description |
 |---|---|
-| Patient encounters | 136,339 |
-| Unique patients | 71,518 |
-| Hospitals covered | 130 U.S. hospitals |
-| Time span | 1999–2008 |
+| diabetic_data | 136,339 patient encounters from 130 U.S. hospitals, 1999–2008 |
+| Source | UCI ML Repository — Diabetes 130-US Hospitals (publicly available, de-identified) |
 
-The dataset includes demographic details (race, age, admission type), clinical data (lab procedures, medical specialty, medications including metformin, length of stay), and readmission records (within 30 days, after 30 days, or not at all).
-
-This isn't synthetic data. These are real encounters, real patients, real outcomes.
-
----
-
-## Files
-
-| File | Contents |
-|---|---|
-| `01_exploratory_analysis.sql` | Queries 1–6: operational and efficiency-focused analysis |
-| `02_readmission_equity.sql` | Query 7: the question nobody asked |
+**Key fields used:**
+- Demographics: race, age, admission type
+- Clinical: num_lab_procedures, num_procedures, medical_specialty, time_in_hospital
+- Medications: metformin dosage flag
+- Outcomes: readmitted (< 30 days, > 30 days, or none)
 
 ---
 
-## The Analysis
+## Tools & Skills Used
 
-### 1. Do Lab Procedure Counts Differ by Race?
-
-The nurse director raised this question — not to prove bias, but to see if the numbers warrant a closer look. I queried the average number of lab procedures per encounter, broken out by race.
-
-```sql
-SELECT
-    race,
-    ROUND(AVG(num_lab_procedures), 2) AS avg_lab_procedures,
-    COUNT(*) AS encounter_count
-FROM diabetic_data
-WHERE race IS NOT NULL AND race != '?'
-GROUP BY race
-ORDER BY avg_lab_procedures DESC;
-```
-
-**Takeaway:** Disparities in procedure counts can reflect many things — disease severity, access patterns, documentation differences — and SQL alone cannot tell you which. But it can tell you whether the numbers look uneven, and hand that finding to someone equipped to dig deeper.
+- **SQL (PostgreSQL):** Aggregations, CASE logic, subqueries, window functions, HAVING filters
+- **Analytical approach:** Business question framing, proactive insight generation beyond the stated brief, equity-aware analysis
 
 ---
 
-### 2. More Procedures = Longer Stays?
+## Key Findings
 
-I segmented patients into three groups — few procedures, average procedures, and many procedures — and calculated average length of stay for each.
+**1. Lab Procedures by Race**
+Average lab procedures per encounter ranged across racial groups. Disparities in procedure counts can reflect disease severity, access patterns, or documentation differences — SQL surfaces the gap; investigation determines the cause.
 
-```sql
-SELECT
-    CASE
-        WHEN num_lab_procedures <= 25 THEN '1. Few (25 or fewer)'
-        WHEN num_lab_procedures <= 54 THEN '2. Average (26 to 54)'
-        ELSE '3. Many (55+)'
-    END AS procedure_group,
-    ROUND(AVG(time_in_hospital), 2) AS avg_length_of_stay,
-    COUNT(*) AS patient_count
-FROM diabetic_data
-GROUP BY procedure_group
-ORDER BY procedure_group;
-```
+**2. Procedure Volume vs. Length of Stay**
 
-**Sample output:**
-
-| procedure_group | avg_length_of_stay | patient_count |
+| Procedure Group | Avg Length of Stay | Patient Count |
 |---|---|---|
-| 1. Few (25 or fewer) | 3.68 | 29,337 |
-| 2. Average (26 to 54) | 4.55 | 79,440 |
-| 3. Many (55+) | 5.92 | 27,562 |
+| Few (25 or fewer) | 3.68 days | 29,337 |
+| Average (26–54) | 4.55 days | 79,440 |
+| Many (55+) | 5.92 days | 27,562 |
 
-**Takeaway:** More procedures correlated with longer stays — but the jump from "average" to "many" is far steeper than from "few" to "average." That nonlinearity matters for capacity modeling and bed utilization forecasting.
+The jump from "average" to "many" is steeper than from "few" to "average" — a nonlinearity that matters for capacity modeling and bed utilization forecasting.
 
----
+**3. High-Procedure Specialties**
+Filtering for specialties with avg procedures > 2.5 and at least 50 encounters surfaces the most resource-intensive clinical areas — relevant for staffing, supply chain, and cost-per-encounter analysis.
 
-### 3. Which Medical Specialties Are the Most Procedure-Intensive?
+**4. Fast-Track Emergency Discharges**
+Patients admitted through the emergency department and discharged faster than the average ER stay represent a benchmark cohort — understanding what they have in common can inform discharge protocol improvements.
 
-The hospital director needed a filtered list: specialties where the average procedures per encounter exceeded 2.5, and where there were at least 50 encounters on record.
+**5. Targeted Patient Cohorts**
+African American patients and those with increased metformin dosage represent specific sub-populations relevant to clinical targeting, research enrollment, and care gap analysis.
 
-```sql
-SELECT
-    medical_specialty,
-    ROUND(AVG(num_procedures), 2) AS avg_procedures,
-    COUNT(*) AS encounter_count
-FROM diabetic_data
-WHERE medical_specialty IS NOT NULL AND medical_specialty != '?'
-GROUP BY medical_specialty
-HAVING AVG(num_procedures) > 2.5 AND COUNT(*) >= 50
-ORDER BY avg_procedures DESC;
-```
+**6. 7-Day Discharge Distribution**
 
-**Takeaway:** Filtering for statistical significance before surfacing findings keeps your analysis from sending leadership chasing ghosts.
-
----
-
-### 4. Emergency Patients Who Left Faster Than Average
-
-I pulled a list of all patients admitted through the emergency department who were discharged faster than the average ER stay.
-
-```sql
-SELECT *
-FROM diabetic_data
-WHERE admission_type_id = 1
-  AND time_in_hospital < (
-      SELECT AVG(time_in_hospital)
-      FROM diabetic_data
-      WHERE admission_type_id = 1
-  );
-```
-
-**Takeaway:** Efficiency isn't just about fixing what's slow — it's about understanding what's working and scaling it.
-
----
-
-### 5. Targeted Patient Lists: When SQL Logic Has to Be Exact
-
-The research team needed a targeted patient list: anyone identified as African American or whose metformin dosage was marked as increased.
-
-```sql
-SELECT *
-FROM diabetic_data
-WHERE race = 'AfricanAmerican'
-   OR metformin = 'Up';
-```
-
-**Takeaway:** Sometimes the most important thing in a query is making sure the logic matches the intent — especially when patient identification is involved.
-
----
-
-### 6. Hospital Stay Distribution — And the 7-Day Line
-
-My boss wanted a distribution of time spent in the hospital: do most patients leave within 7 days?
-
-```sql
-SELECT
-    CASE
-        WHEN time_in_hospital <= 7 THEN '7 days or fewer'
-        ELSE 'More than 7 days'
-    END AS stay_category,
-    COUNT(*) AS patient_count,
-    ROUND(COUNT(*) * 100.0 / SUM(COUNT(*)) OVER (), 2) AS pct_of_total
-FROM diabetic_data
-GROUP BY stay_category;
-```
-
-**Sample output:**
-
-| stay_category | patient_count | pct_of_total |
+| Stay Category | Patient Count | % of Total |
 |---|---|---|
-| 7 days or fewer | 103,000 | 75.56% |
-| More than 7 days | 33,339 | 24.44% |
+| 7 days or fewer | ~103,000 | 75.56% |
+| More than 7 days | ~33,339 | 24.44% |
 
-**Takeaway:** The majority of encounters resolve within a week. For patients who stay longer than 7 days, the goal is to confirm those cases are genuinely high-acuity — not the result of process bottlenecks or discharge delays.
+Three-quarters of encounters resolve within a week. Patients staying longer than 7 days should be reviewed to confirm high-acuity necessity vs. discharge process delays.
 
----
+**7. Sub-30-Day Readmission Rates by Race** *(Proactive finding)*
 
-### 7. The Question Nobody Asked — Readmission Rates by Race
-
-My boss's questions were all oriented around efficiency: how fast are patients moving through the system? How many procedures are they getting? How long are they staying? All valid, all useful.
-
-But there was a blind spot. Nobody asked about readmissions within 30 days — and in healthcare, a 30-day readmission is one of the most expensive, most telling, and most preventable events in the system.
-
-I built a query to calculate the sub-30-day readmission rate, and then — because the earlier race-based procedure analysis was already in my head — I broke it down by race.
-
-```sql
--- Overall sub-30-day readmission rate
-SELECT
-    ROUND(
-        SUM(CASE WHEN readmitted = '<30' THEN 1 ELSE 0 END) * 100.0 / COUNT(*),
-        2
-    ) AS readmission_rate_pct
-FROM diabetic_data;
-
--- Readmission rate broken down by race
-SELECT
-    race,
-    COUNT(*) AS total_encounters,
-    SUM(CASE WHEN readmitted = '<30' THEN 1 ELSE 0 END) AS readmissions,
-    ROUND(
-        SUM(CASE WHEN readmitted = '<30' THEN 1 ELSE 0 END) * 100.0 / COUNT(*),
-        2
-    ) AS readmission_rate_pct
-FROM diabetic_data
-GROUP BY race
-ORDER BY readmission_rate_pct DESC;
-```
-
-**Sample output** (overall rate: ~11.2%):
-
-| race | total_encounters | readmissions | readmission_rate_pct |
+| Race | Total Encounters | Readmissions | Readmission Rate |
 |---|---|---|---|
 | AfricanAmerican | 19,210 | 2,263 | 11.78% |
 | Caucasian | 76,099 | 8,461 | 11.12% |
 | Hispanic | 2,037 | 209 | 10.26% |
 | Other | 1,506 | 157 | 10.43% |
 | Asian | 641 | 58 | 9.05% |
+| Overall | — | — | ~11.2% |
 
-**Takeaway:** The results showed uneven readmission rates across demographic groups. That's not a conclusion about causation — but it is a flag. It's the kind of finding that should prompt a serious conversation about whether all patient populations are receiving equally effective discharge planning, follow-up care, and post-visit support.
-
-My boss didn't ask for it. But I think they needed it.
-
----
-
-## Key Takeaways
-
-- **Efficiency metrics alone don't tell the full story.** Speed and volume are easy to measure. Equity and outcomes are harder — and more important.
-- **Readmissions are the missing metric.** Optimizing for fast discharges without tracking who comes back within 30 days is optimizing for the wrong thing.
-- **Demographic breakdowns matter at every step.** Disaggregating by race isn't about blame — it's about finding the gaps that aggregate numbers hide.
-- **Context makes queries useful.** The best SQL is purposeful SQL.
-- **The analyst's job is interpretation, not just execution.** The value comes from understanding what the output means — and what it should prompt next.
+Uneven readmission rates across demographic groups do not establish causation — but they flag a gap that should prompt review of discharge planning effectiveness, follow-up appointment rates, and post-acute care access by population.
 
 ---
 
-## What's Next
+## Key Business Recommendations
 
-This analysis is a starting point, not a finish line. If I were presenting this to hospital leadership, the immediate next step would be a deeper readmission study — specifically exploring whether the demographic disparities in readmission rates correlate with discharge protocols, follow-up appointment rates, or geographic access to post-acute care.
-
----
-
-## Dataset and Tools
-
-| Item | Detail |
+| Priority | Recommendation |
 |---|---|
-| Dataset | [Diabetes 130 US Hospitals, 1999-2008](https://www.kaggle.com/datasets/brandao/diabetes) (UCI ML Repository) |
-| Tools | SQL |
-| Author | Aristotle Polites |
+| 📋 Investigate readmission equity gap | The 2.7pp spread in sub-30-day readmission rates warrants a deeper study into discharge protocols and follow-up care access by demographic group |
+| 🛏️ Audit 7-day-plus stays | 24.4% of encounters exceed 7 days — distinguish high-acuity necessity from process bottlenecks to identify capacity and cost improvement opportunities |
+| 📊 Act on procedure-concentration risk | High-procedure specialties represent concentrated cost and staffing demands; flag for resource planning and efficiency review |
+| 🔬 Expand readmission analysis | Next step: correlate readmission rates with discharge protocols, follow-up scheduling rates, and geographic access to post-acute care |
+
+---
+
+## Data Cleaning, Assumptions & Limitations
+
+- Race and medical specialty fields contain '?' values treated as NULL and excluded from group-level aggregations.
+- Procedure group thresholds (≤25, 26–54, 55+) are based on approximate tertile distribution of num_lab_procedures in the dataset.
+- Readmission rate analysis reflects the full encounter dataset; individual patients may appear multiple times.
+- Analysis does not control for confounding variables (e.g., disease severity, insurance type, geographic region) — demographic disparities in readmission rates should not be interpreted as direct evidence of inequitable care without further investigation.
+- Dataset covers 1999–2008 and may not reflect current clinical practices or demographic distributions.
+
+---
+
+## Project Structure
+
+```
+hospital-readmissions-sql-analysis/
+├── 01_exploratory_analysis.sql    # Queries 1–6: operational and efficiency analysis
+├── 02_readmission_equity.sql      # Query 7: proactive readmission equity analysis
+└── README.md
+```
