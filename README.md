@@ -66,6 +66,8 @@ The jump from "average" to "many" is steeper than from "few" to "average" — a 
 
 **High-Procedure Specialties**
 
+![High-Procedure Specialties](Query_1_Results.png)
+
 Filtering for specialties with avg procedures > 2.5 and at least 50 encounters surfaces the most resource-intensive clinical areas — relevant for staffing, supply chain, and cost-per-encounter analysis.
 
 **Fast-Track Emergency Discharges**
