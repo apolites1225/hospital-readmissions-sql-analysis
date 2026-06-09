@@ -106,7 +106,7 @@ Uneven readmission rates across demographic groups do not establish causation â€
 - **Audit 7-day-plus stays:** 24.4% of encounters exceed 7 days â€” distinguish high-acuity necessity from process bottlenecks to identify capacity and cost improvement opportunities
 - **Act on procedure-concentration risk:** High-procedure specialties represent concentrated cost and staffing demands; flag for resource planning and efficiency review
 - **Expand readmission analysis:** Correlate readmission rates with discharge protocols, follow-up scheduling rates, and geographic access to post-acute care
-- 
+
 ---
 
 ## Data Cleaning, Assumptions & Limitations
